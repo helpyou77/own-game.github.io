@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Своя игра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .category {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .category:hover {
+            transform: translateY(-3px);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .questions-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .question-cell {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .question-cell:hover {
+            transform: scale(1.05);
+            background: rgba(30, 30, 150, 0.8);
+        }
+
+        .question-cell.answered {
+            background: rgba(0, 0, 0, 0.3);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            width: 80%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .answer-input {
+            width: 80%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #F57C00;
+            transform: translateY(-2px);
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .edit-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-content {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            width: 90%;
+            max-width: 900px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .edit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .edit-cell {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+        }
+
+        @media (max-width: 900px) {
+            .categories, .questions-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .edit-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .categories, .questions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .edit-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .control-panel {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>СВОЯ ИГРА</h1>
+            <p class="subtitle"></p>
+        </header>
+
+        <div class="score-display">
+            <span>Счёт: </span><span id="score">0</span>
+        </div>
+
+        <div class="control-panel">
+            <button id="resetGame" class="btn btn-secondary">Новая игра</button>
+            <button id="editGame" class="btn btn-edit">Редактировать игру</button>
+        </div>
+
+        <div class="game-area">
+            <div class="categories" id="categories">
+                <!-- Категории будут заполнены JavaScript -->
+            </div>
+            <div class="questions-grid" id="questionsGrid">
+                <!-- Вопросы будут заполнены JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно вопроса -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeQuestionModal">×</button>
+            <div class="question-text" id="questionText"></div>
+            <input type="text" class="answer-input" id="answerInput" placeholder="Введите ваш ответ...">
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="submitAnswer">Ответить</button>
+                <button class="btn btn-secondary" id="cancelAnswer">Отмена</button>
+            </div>
+            <div id="answerResult" style="margin-top: 20px; font-size: 1.2rem;"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования -->
+    <div class="edit-modal" id="editModal">
+        <div class="edit-content">
+            <button class="close-btn" id="closeEditModal">×</button>
+            <h2>Редактирование игры</h2>
+            <p>Измените названия категорий и вопросы с ответами. Для сохранения нажмите "Сохранить изменения".</p>
+            
+            <div class="edit-grid" id="editGrid">
+                <!-- Редактируемые поля будут заполнены JavaScript -->
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn btn-primary" id="saveChanges">Сохранить изменения</button>
+                <button class="btn btn-secondary" id="cancelEdit">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация игры
+        let gameState = {
+            score: 0,
+            answeredQuestions: [],
+            gameData: {
+                categories: ["История", "Наука", "Искусство", "Спорт", "География"],
+                questions: [
+                    [
+                        { question: "Кто был первым президентом России?", answer: "Борис Ельцин", points: 100 },
+                        { question: "В каком году началась Вторая мировая война?", answer: "1939", points: 200 },
+                        { question: "Как звали первого царя из династии Романовых?", answer: "Михаил", points: 300 },
+                        { question: "Кто написал 'Войну и мир'?", answer: "Лев Толстой", points: 400 },
+                        { question: "Столица Древней Руси?", answer: "Киев", points: 500 }
+                    ],
+                    [
+                        { question: "Сколько планет в Солнечной системе?", answer: "8", points: 100 },
+                        { question: "Какой газ преобладает в атмосфере Земли?", answer: "Азот", points: 200 },
+                        { question: "Кто открыл закон всемирного тяготения?", answer: "Ньютон", points: 300 },
+                        { question: "Какой элемент обозначается символом 'O'?", answer: "Кислород", points: 400 },
+                        { question: "Сколько хромосом у человека?", answer: "46", points: 500 }
+                    ],
+                    [
+                        { question: "Кто написал 'Мону Лизу'?", answer: "Леонардо да Винчи", points: 100 },
+                        { question: "В какой стране родился Моцарт?", answer: "Австрия", points: 200 },
+                        { question: "Какой художник отрезал себе ухо?", answer: "Ван Гог", points: 300 },
+                        { question: "Кто написал 'Гернику'?", answer: "Пикассо", points: 400 },
+                        { question: "В каком веке жил Шекспир?", answer: "16", points: 500 }
+                    ],
+                    [
+                        { question: "В каком виде спорта используется ракетка и волан?", answer: "Бадминтон", points: 100 },
+                        { question: "Сколько игроков в футбольной команде?", answer: "11", points: 200 },
+                        { question: "Кто выиграл Чемпионат мира по футболу 2018?", answer: "Франция", points: 300 },
+                        { question: "В каком году проходили Олимпийские игры в Москве?", answer: "1980", points: 400 },
+                        { question: "Какой спортсмен имеет больше всего олимпийских медалей?", answer: "Майкл Фелпс", points: 500 }
+                    ],
+                    [
+                        { question: "Самая длинная река в мире?", answer: "Нил", points: 100 },
+                        { question: "Столица Австралии?", answer: "Канберра", points: 200 },
+                        { question: "Самая высокая гора в мире?", answer: "Эверест", points: 300 },
+                        { question: "Самое большое озеро в мире?", answer: "Каспийское море", points: 400 },
+                        { question: "Сколько континентов на Земле?", answer: "7", points: 500 }
+                    ]
+                ]
+            }
+        };
+
+        // DOM элементы
+        const categoriesElement = document.getElementById('categories');
+        const questionsGridElement = document.getElementById('questionsGrid');
+        const scoreElement = document.getElementById('score');
+        const questionModal = document.getElementById('questionModal');
+        const questionTextElement = document.getElementById('questionText');
+        const answerInputElement = document.getElementById('answerInput');
+        const answerResultElement = document.getElementById('answerResult');
+        const editModal = document.getElementById('editModal');
+        const editGridElement = document.getElementById('editGrid');
+
+        // Инициализация игры
+        function initGame() {
+            renderCategories();
+            renderQuestions();
+            updateScore();
+        }
+
+        // Отображение категорий
+        function renderCategories() {
+            categoriesElement.innerHTML = '';
+            gameState.gameData.categories.forEach(category => {
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'category';
+                categoryElement.textContent = category;
+                categoriesElement.appendChild(categoryElement);
+            });
+        }
+
+        // Отображение вопросов
+        function renderQuestions() {
+            questionsGridElement.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                for (let j = 0; j < 5; j++) {
+                    const questionCell = document.createElement('div');
+                    questionCell.className = 'question-cell';
+                    
+                    // Проверяем, был ли вопрос уже отвечен
+                    const isAnswered = gameState.answeredQuestions.some(q => q.categoryIndex === j && q.questionIndex === i);
+                    
+                    if (isAnswered) {
+                        questionCell.classList.add('answered');
+                        questionCell.textContent = '---';
+                    } else {
+                        questionCell.textContent = gameState.gameData.questions[j][i].points;
+                        
+                        // Добавляем обработчик клика
+                        questionCell.addEventListener('click', () => openQuestion(j, i));
+                    }
+                    
+                    questionsGridElement.appendChild(questionCell);
+                }
+            }
+        }
+
+        // Открытие вопроса
+        function openQuestion(categoryIndex, questionIndex) {
+            const question = gameState.gameData.questions[categoryIndex][questionIndex];
+            questionTextElement.textContent = question.question;
+            answerInputElement.value = '';
+            answerResultElement.textContent = '';
+            
+            // Сохраняем индексы вопроса для дальнейшего использования
+            questionModal.dataset.categoryIndex = categoryIndex;
+            questionModal.dataset.questionIndex = questionIndex;
+            
+            questionModal.style.display = 'flex';
+            answerInputElement.focus();
+        }
+
+        // Проверка ответа
+        function checkAnswer() {
+            const categoryIndex = parseInt(questionModal.dataset.categoryIndex);
+            const questionIndex = parseInt(questionModal.dataset.questionIndex);
+            const question = gameState.gameData.questions[categoryIndex][questionIndex];
+            const userAnswer = answerInputElement.value.trim().toLowerCase();
+            const correctAnswer = question.answer.toLowerCase();
+            
+            if (userAnswer === correctAnswer) {
+                // Правильный ответ
+                gameState.score += question.points;
+                answerResultElement.textContent = `Правильно! +${question.points} очков`;
+                answerResultElement.style.color = '#4CAF50';
+            } else {
+                // Неправильный ответ
+                gameState.score = Math.max(0, gameState.score - question.points);
+                answerResultElement.textContent = `Неправильно! Правильный ответ: ${question.answer}`;
+                answerResultElement.style.color = '#f44336';
+            }
+            
+            // Помечаем вопрос как отвеченный
+            gameState.answeredQuestions.push({
+                categoryIndex: categoryIndex,
+                questionIndex: questionIndex
+            });
+            
+            updateScore();
+            
+            // Обновляем интерфейс через 2 секунды
+            setTimeout(() => {
+                questionModal.style.display = 'none';
+                renderQuestions();
+            }, 2000);
+        }
+
+        // Обновление счета
+        function updateScore() {
+            scoreElement.textContent = gameState.score;
+        }
+
+        // Открытие редактора
+        function openEditor() {
+            editGridElement.innerHTML = '';
+            
+            // Добавляем поля для категорий
+            for (let i = 0; i < 5; i++) {
+                const categoryCell = document.createElement('div');
+                categoryCell.className = 'edit-cell';
+                categoryCell.innerHTML = `
+                    <strong>Категория ${i+1}</strong>
+                    <input type="text" class="edit-input" value="${gameState.gameData.categories[i]}" data-type="category" data-index="${i}">
+                `;
+                editGridElement.appendChild(categoryCell);
+            }
+            
+            // Добавляем поля для вопросов и ответов
+            for (let i = 0; i < 5; i++) {
+                for (let j = 0; j < 5; j++) {
+                    const questionCell = document.createElement('div');
+                    questionCell.className = 'edit-cell';
+                    questionCell.innerHTML = `
+                        <strong>${gameState.gameData.categories[i]} - ${(j+1)*100}</strong>
+                        <input type="text" class="edit-input" value="${gameState.gameData.questions[i][j].question}" 
+                               placeholder="Вопрос" data-type="question" data-category="${i}" data-index="${j}">
+                        <input type="text" class="edit-input" value="${gameState.gameData.questions[i][j].answer}" 
+                               placeholder="Ответ" data-type="answer" data-category="${i}" data-index="${j}">
+                    `;
+                    editGridElement.appendChild(questionCell);
+                }
+            }
+            
+            editModal.style.display = 'flex';
+        }
+
+        // Сохранение изменений
+        function saveChanges() {
+            // Сохраняем категории
+            const categoryInputs = document.querySelectorAll('input[data-type="category"]');
+            categoryInputs.forEach(input => {
+                const index = parseInt(input.dataset.index);
+                gameState.gameData.categories[index] = input.value;
+            });
+            
+            // Сохраняем вопросы и ответы
+            const questionInputs = document.querySelectorAll('input[data-type="question"]');
+            questionInputs.forEach(input => {
+                const categoryIndex = parseInt(input.dataset.category);
+                const questionIndex = parseInt(input.dataset.index);
+                gameState.gameData.questions[categoryIndex][questionIndex].question = input.value;
+            });
+            
+            const answerInputs = document.querySelectorAll('input[data-type="answer"]');
+            answerInputs.forEach(input => {
+                const categoryIndex = parseInt(input.dataset.category);
+                const questionIndex = parseInt(input.dataset.index);
+                gameState.gameData.questions[categoryIndex][questionIndex].answer = input.value;
+            });
+            
+            // Обновляем интерфейс
+            renderCategories();
+            renderQuestions();
+            editModal.style.display = 'none';
+        }
+
+        // Сброс игры
+        function resetGame() {
+            gameState.score = 0;
+            gameState.answeredQuestions = [];
+            updateScore();
+            renderQuestions();
+        }
+
+        // Назначение обработчиков событий
+        document.getElementById('submitAnswer').addEventListener('click', checkAnswer);
+        document.getElementById('cancelAnswer').addEventListener('click', () => {
+            questionModal.style.display = 'none';
+        });
+        document.getElementById('closeQuestionModal').addEventListener('click', () => {
+            questionModal.style.display = 'none';
+        });
+        
+        document.getElementById('editGame').addEventListener('click', openEditor);
+        document.getElementById('saveChanges').addEventListener('click', saveChanges);
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+        document.getElementById('closeEditModal').addEventListener('click', () => {
+            editModal.style.display = 'none';
+        });
+        
+        document.getElementById('resetGame').addEventListener('click', resetGame);
+        
+        // Закрытие модальных окон при клике вне их
+        window.addEventListener('click', (e) => {
+            if (e.target === questionModal) {
+                questionModal.style.display = 'none';
+            }
+            if (e.target === editModal) {
+                editModal.style.display = 'none';
+            }
+        });
+
+        // Запуск игры при загрузке страницы
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
